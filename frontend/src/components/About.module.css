@@ -1,0 +1,97 @@
+:root{
+  --muted:#a65b2b;
+  --heading:#a65b2b;
+  --divider:#e6e1dd;
+  --bg:#fbfaf8;
+}
+
+/* Section wrapper */
+.about{
+  background: var(--bg);
+  padding: 72px 20px;
+  display:block;
+}
+
+/* Inner container */
+.inner{
+  max-width: 1200px;
+  margin: 0 auto;
+  display:flex;
+  align-items:center;
+  gap:32px;
+}
+
+/* Left text column */
+.left{
+  flex: 1 1 48%;
+  min-width: 260px;
+  text-align: left;
+  padding: 8px 12px;
+}
+.title{
+  font-family: "Playfair Display", serif;
+  font-size: clamp(28px, 3.8vw, 44px);
+  color: var(--heading);
+  margin-bottom: 18px;
+  line-height: 1.05;
+  font-weight: 700;
+}
+.lead{
+  font-family: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  color: var(--muted);
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.8;
+  max-width: 720px;
+  margin: 0;
+}
+
+/* Vertical divider */
+.divider{
+  width: 1px;
+  height: 220px;
+  background: var(--divider);
+  flex: 0 0 1px;
+  border-radius: 1px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02) inset;
+}
+
+/* Right image column */
+.right{
+  flex: 1 1 48%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding: 8px 12px;
+  margin: 0;
+}
+.image{
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  width: 100%;
+  height: auto;
+  max-width: 560px;
+}
+
+/* Responsive: stack on small screens and turn the divider horizontal (or hide) */
+@media (max-width: 880px){
+  .inner{
+    flex-direction: column;
+    gap: 20px;
+    align-items: stretch;
+  }
+  .divider{
+    width: 100%;
+    height: 1px;
+    margin: 0 auto;
+  }
+  .left, .right{
+    flex: none;
+    width: 100%;
+    padding: 0;
+  }
+  .image{
+    max-width: 100%;
+    border-radius: 6px;
+  }
+}

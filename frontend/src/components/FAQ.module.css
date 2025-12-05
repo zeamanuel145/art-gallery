@@ -1,0 +1,129 @@
+:root{
+  --bg: #fbfaf8;
+  --muted: #a65b2b;
+  --accent: #a65b2b;
+  --card-bg: #f5ece6; /* light warm panel */
+  --panel-bg: #f2e9e4;
+  --radius: 10px;
+  --shadow: 0 8px 26px rgba(0,0,0,0.06);
+  font-family: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+:root.dark {
+  --panel-bg: #3d2914;
+  --muted: #a65b2b;
+}
+
+/* Section */
+.section{
+  background: var(--bg);
+  padding: 64px 20px;
+  color: var(--muted);
+}
+.container{
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+/* Title */
+.title{
+  text-align: center;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(28px, 4vw, 44px);
+  color: #a65b2b;
+  margin-bottom: 22px;
+}
+
+/* FAQ list */
+.list{
+  display: grid;
+  gap: 14px;
+}
+
+/* Item */
+.item{
+  background: transparent;
+}
+
+/* Header button */
+.h{ margin: 0; }
+.button{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  text-align: left;
+  transition: box-shadow 160ms ease, transform 160ms ease;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 15px;
+}
+.button:hover{
+  transform: translateY(-2px);
+}
+.button:focus{
+  outline: 3px solid rgba(166,91,43,0.12);
+  outline-offset: 4px;
+}
+
+/* question text */
+.qText{
+  display: block;
+  text-align: left;
+}
+
+/* chevron rotate */
+.chev{
+  color: var(--accent);
+  transition: transform 220ms ease;
+}
+.open .chev{
+  transform: rotate(180deg);
+}
+
+/* Panel (collapsible) */
+.panel{
+  overflow: hidden;
+  transition: max-height 300ms cubic-bezier(.2,.9,.2,1), opacity 260ms ease;
+  max-height: 0;
+  opacity: 0;
+  margin-top: 8px;
+  border-radius: 10px;
+}
+.panelOpen{
+  max-height: 1000px; /* large enough to allow content; inline style sets --max too */
+  opacity: 1;
+}
+
+/* inner content area */
+.panelInner{
+  background: var(--panel-bg);
+  padding: 18px 20px;
+  border-radius: 10px;
+  color: var(--muted);
+  line-height: 1.8;
+  font-size: 15px;
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* nested lists and ol styles */
+.panelInner ul, .panelInner ol{
+  margin: 8px 0 0 20px;
+  padding: 0;
+}
+
+
+
+/* Responsive */
+@media (max-width: 720px){
+  .container{ padding: 0 8px; }
+  .button{ padding: 14px 16px; font-size: 14px; }
+  .panelInner{ padding: 14px 16px; font-size: 14px; }
+}

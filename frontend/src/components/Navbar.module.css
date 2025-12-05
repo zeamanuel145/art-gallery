@@ -1,0 +1,17 @@
+/* Dashboard mobile menu dark mode fix */
+.dashboardMobileMenu {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(8px);
+}
+
+:global(.dark) .dashboardMobileMenu {
+  background: #3d2914 !important;
+}
+
+.dashboardMobileMenu :global(a) {
+  color: white !important;
+}
+
+.dashboardMobileMenu :global(button) {
+  color: white !important;
+}

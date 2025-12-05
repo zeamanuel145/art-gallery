@@ -1,0 +1,233 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --page-bg: #fbfaf8;
+  --accent: #a65b2b;
+  --muted: #6b625d;
+  --card-bg: #ffffff;
+  --shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+:root.dark {
+  --background: #3d2914;
+  --foreground: #ffffff;
+  --page-bg: #3d2914;
+  --accent: #d4915a;
+  --muted: #e5e5e5;
+  --card-bg: #4a3018;
+  --shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+:root.dark body {
+  background: #3d2914 !important;
+  color: white !important;
+}
+
+:root.dark * {
+  color: white !important;
+}
+
+:root.dark section:not(.hero):not(.navbar):not([class*="FAQ_section"]) {
+  background: #3d2914 !important;
+}
+
+:root.dark .section:not(.hero):not(.navbar):not([class*="FAQ_section"]) {
+  background: #3d2914 !important;
+}
+
+:root.dark main {
+  background: #3d2914 !important;
+}
+
+:root.dark .card-bg {
+  background: #4a3018 !important;
+}
+
+:root.dark .navbar {
+  background: transparent !important;
+}
+
+:root.dark .hero {
+  background: transparent !important;
+}
+
+:root.dark .hero * {
+  background: transparent !important;
+}
+
+:root.dark footer {
+  background: #3d2914 !important;
+}
+
+:root.dark footer * {
+  color: white !important;
+}
+
+:root.dark .panelInner {
+  background: #3d2914 !important;
+}
+
+:root.dark .panel {
+  background: #3d2914 !important;
+}
+
+:root.dark [class*="panelInner"] {
+  background: #3d2914 !important;
+}
+
+:root.dark [class*="panel"] {
+  background: #3d2914 !important;
+}
+
+:root.dark div[class*="FAQ_panelInner"] {
+  background: #3d2914 !important;
+}
+
+:root.dark div[class*="FAQ_panel"] {
+  background: #3d2914 !important;
+}
+
+
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Smooth page transitions */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Prevent layout shift during image loading */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Smooth transitions for navigation */
+a {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Text Animation Effects */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Animation Classes */
+.animate-fadeInUp {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.8s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.8s ease-out;
+}
+
+/* Hover animations for headings */
+h1, h2, h3 {
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+h1:hover, h2:hover, h3:hover {
+  transform: translateY(-2px);
+  color: #8f4a20;
+}
+
+/* Button hover animations */
+button, .btn {
+  transition: all 0.3s ease;
+}
+
+button:hover, .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(166, 91, 43, 0.3);
+}
+
+/* Loading state for images */
+img[data-loading="true"] {
+  opacity: 0;
+}
+
+img[data-loading="false"] {
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Prevent content flash during page transitions */
+body {
+  overflow-x: hidden;
+}
+
+/* Ensure images don't cause layout shift */
+img {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Force footer styling */
+footer {
+  background: #5a2f15 !important;
+  color: #f9efe8 !important;
+}
+
+footer * {
+  color: #f9efe8 !important;
+}
+
+footer a {
+  color: #f9efe8 !important;
+}
+
+footer h1, footer h2, footer h3, footer h4, footer h5, footer h6 {
+  color: #f9efe8 !important;
+}
+
+footer p, footer span, footer div, footer li {
+  color: rgba(255, 255, 255, 0.86) !important;
+}
