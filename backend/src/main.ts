@@ -13,7 +13,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      'https://brana-artworks.vercel.app',
+      'https://art-gallery-theta-self.vercel.app',
       /\.vercel\.app$/,
       /\.netlify\.app$/
     ],
