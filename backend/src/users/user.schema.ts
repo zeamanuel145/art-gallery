@@ -26,6 +26,9 @@ export class User {
 
   @Prop()
   studio: string;
+
+  @Prop({ enum: ['user', 'admin'], default: 'user' })
+  role: string;
 }
 
 export type UserDocument = User & Document;

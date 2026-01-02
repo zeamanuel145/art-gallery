@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Artwork, User, api } from '../lib/api';
+import { useCart } from '../contexts/CartContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface ArtworkModalProps {
   artwork: Artwork;
@@ -16,6 +18,8 @@ export default function ArtworkModal({ artwork, user, onClose, onUpdate }: Artwo
   const [price, setPrice] = useState('');
   const [showSellForm, setShowSellForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { addToCart, isInCart } = useCart();
+  const { showToast } = useToast();
 
   const isOwner = user?._id === artwork.artist._id || user?.id === artwork.artist._id;
   const hasLiked = user && artwork.likedBy?.includes(user._id || user.id || '');
@@ -77,6 +81,19 @@ export default function ArtworkModal({ artwork, user, onClose, onUpdate }: Artwo
     }
   };
 
+  const handleAddToCart = () => {
+    if (!user) {
+      showToast('Please log in to add items to cart', 'warning');
+      return;
+    }
+    if (!artwork.forSale || artwork.sold) {
+      showToast('This artwork is not available for purchase', 'error');
+      return;
+    }
+    addToCart(artwork);
+    showToast(`${artwork.title} added to cart`, 'success');
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" style={{backgroundColor: 'var(--modal-bg)'}}>
@@ -136,13 +153,26 @@ export default function ArtworkModal({ artwork, user, onClose, onUpdate }: Artwo
                   <h4 className="text-lg font-semibold text-green-800 mb-2">Available for Purchase</h4>
                   <p className="text-2xl font-bold text-green-600 mb-3">${artwork.price}</p>
                   {!isOwner && user && (
-                    <button
-                      onClick={handleBuy}
-                      disabled={loading}
-                      className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold"
-                    >
-                      {loading ? 'Processing...' : 'Buy Now'}
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleBuy}
+                        disabled={loading}
+                        className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 font-semibold"
+                      >
+                        {loading ? 'Processing...' : 'Buy Now'}
+                      </button>
+                      <button
+                        onClick={handleAddToCart}
+                        disabled={loading}
+                        className={`px-6 py-3 rounded-lg text-white font-semibold disabled:opacity-50 ${
+                          isInCart(artwork._id)
+                            ? 'bg-green-500 hover:bg-green-600'
+                            : 'bg-amber-600 hover:bg-amber-700'
+                        }`}
+                      >
+                        {isInCart(artwork._id) ? '✓ In Cart' : 'Add to Cart'}
+                      </button>
+                    </div>
                   )}
                 </div>
               )}

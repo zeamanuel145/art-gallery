@@ -1,17 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import ThemeToggle from './ThemeToggle';
-import { api } from '../lib/api';
+import { api, User } from '../lib/api';
 
 interface SidebarProps {
   activePage?: string;
+  user?: User | null;
 }
 
-const DashboardSidebar: React.FC<SidebarProps> = ({ activePage = "Home" }) => {
+const DashboardSidebar: React.FC<SidebarProps> = ({ activePage = "Home", user: userProp }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(userProp || null);
+
+  useEffect(() => {
+    if (!userProp) {
+      const fetchUser = async () => {
+        try {
+          const userData = await api.getProfile();
+          setUser(userData);
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
+        }
+      };
+      fetchUser();
+    } else {
+      setUser(userProp);
+    }
+  }, [userProp]);
 
   const handleLogout = () => {
     api.logout();
@@ -52,6 +70,13 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ activePage = "Home" }) => {
           <span className="icon">🛒</span>
           <span>Purchases</span>
         </Link>
+
+        {user?.role === 'admin' && (
+          <Link className={`item ${activePage === "admin" ? "active" : ""}`} href="/admin">
+            <span className="icon">👑</span>
+            <span>Admin Panel</span>
+          </Link>
+        )}
       </nav>
 
       <div className="bottom">

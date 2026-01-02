@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Artwork, api } from '../lib/api';
+import { useCart } from '../contexts/CartContext';
+import { useToast } from '../contexts/ToastContext';
 
 interface ArtworkCardProps {
   artwork: Artwork;
@@ -14,6 +16,8 @@ export default function ArtworkCard({ artwork, currentUser, onUpdate }: ArtworkC
   const [showComments, setShowComments] = useState(false);
   const [price, setPrice] = useState('');
   const [showSellForm, setShowSellForm] = useState(false);
+  const { addToCart, isInCart } = useCart();
+  const { showToast } = useToast();
 
   const handleLike = async () => {
     if (!currentUser) return;
@@ -60,6 +64,19 @@ export default function ArtworkCard({ artwork, currentUser, onUpdate }: ArtworkC
     }
   };
 
+  const handleAddToCart = () => {
+    if (!currentUser) {
+      showToast('Please log in to add items to cart', 'warning');
+      return;
+    }
+    if (!artwork.forSale || artwork.sold) {
+      showToast('This artwork is not available for purchase', 'error');
+      return;
+    }
+    addToCart(artwork);
+    showToast(`${artwork.title} added to cart`, 'success');
+  };
+
   const isOwner = currentUser && (currentUser._id === artwork.artist._id || currentUser.id === artwork.artist._id);
   const hasLiked = currentUser && artwork.likedBy?.includes(currentUser._id || currentUser.id || '');
 
@@ -80,12 +97,24 @@ export default function ArtworkCard({ artwork, currentUser, onUpdate }: ArtworkC
           <div className="bg-green-100 p-2 rounded mb-4">
             <p className="text-green-800 font-semibold">For Sale: ${artwork.price}</p>
             {!isOwner && currentUser && (
-              <button 
-                onClick={handleBuy}
-                className="bg-green-600 text-white px-4 py-2 rounded mt-2 hover:bg-green-700"
-              >
-                Buy Now
-              </button>
+              <div className="flex gap-2 mt-2">
+                <button 
+                  onClick={handleBuy}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                >
+                  Buy Now
+                </button>
+                <button 
+                  onClick={handleAddToCart}
+                  className={`px-4 py-2 rounded text-white font-semibold ${
+                    isInCart(artwork._id) 
+                      ? 'bg-green-500 hover:bg-green-600' 
+                      : 'bg-amber-600 hover:bg-amber-700'
+                  }`}
+                >
+                  {isInCart(artwork._id) ? '✓ In Cart' : 'Add to Cart'}
+                </button>
+              </div>
             )}
           </div>
         )}
