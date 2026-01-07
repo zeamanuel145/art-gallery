@@ -39,11 +39,11 @@ export class OrdersService {
       if (!artwork.forSale || artwork.sold) throw new BadRequestException(`Artwork ${artwork.title} is not available for sale`);
 
       items.push({
-        artwork: artwork._id,
+        artwork: new Types.ObjectId(artwork._id),
         quantity: item.quantity,
         price: artwork.price,
         subtotal: artwork.price * item.quantity,
-        seller: artwork.artist._id,
+        seller: new Types.ObjectId(artwork.artist._id),
         buyer: new Types.ObjectId(userId),
       });
     }
