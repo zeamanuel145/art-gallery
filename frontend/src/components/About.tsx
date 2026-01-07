@@ -12,7 +12,7 @@ const About: React.FC = () => {
           </h2>
 
           <p className={`${styles.lead} text-sm xs:text-base sm:text-base lg:text-lg leading-relaxed max-w-prose mx-auto md:mx-0 animate-fadeInUp`}>
-            BRANAArts is a platform dedicated to showcasing and preserving the vibrant artistic heritage of Ethiopia. We connect artists with art enthusiasts, providing a space to buy, sell, and promote traditional Ethiopian arts, paintings, and crafts. Our mission is to celebrate the cultural richness of Ethiopia and empower artists to share their creations with the world.
+            BRANAArts is a platform dedicated ee to showcasing and preserving the vibrant artistic heritage of Ethiopia. We connect artists with art enthusiasts, providing a space to buy, sell, and promote traditional Ethiopian arts, paintings, and crafts. Our mission is to celebrate the cultural richness of Ethiopia and empower artists to share their creations with the world.
           </p>
         </div>
 

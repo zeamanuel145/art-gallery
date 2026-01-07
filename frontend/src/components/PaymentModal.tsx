@@ -49,7 +49,7 @@ export default function PaymentModal({ artwork, user, onClose, onSuccess }: Paym
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay text-black" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Complete Purchase</h2>
@@ -136,6 +136,8 @@ export default function PaymentModal({ artwork, user, onClose, onSuccess }: Paym
       </div>
 
       <style jsx>{`
+        
+
         .modal-overlay {
           position: fixed;
           top: 0;
@@ -169,7 +171,7 @@ export default function PaymentModal({ artwork, user, onClose, onSuccess }: Paym
 
         .modal-header h2 {
           margin: 0;
-          color: #a65b2b;
+          color: #000;
           font-size: 20px;
         }
 

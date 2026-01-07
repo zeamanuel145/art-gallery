@@ -12,6 +12,7 @@ export interface User {
   profilePicture?: string;
   phone?: string;
   studio?: string;
+  role?: string;
 }
 
 export interface Artwork {
@@ -198,7 +199,193 @@ class ApiClient {
     return this.request<any[]>(`/artworks/my-sales`, { method: 'GET' }, true);
   }
 
+  // Cart endpoints
+  async getCart(): Promise<any> {
+    return this.request<any>(`/cart`, { method: 'GET' }, true);
+  }
 
+  async addToCart(artworkId: string, quantity: number = 1): Promise<any> {
+    return this.request<any>(
+      `/cart/items`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ artworkId, quantity }),
+      },
+      true,
+    );
+  }
+
+  async updateCartItemQuantity(artworkId: string, quantity: number): Promise<any> {
+    return this.request<any>(
+      `/cart/items/${artworkId}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity }),
+      },
+      true,
+    );
+  }
+
+  async removeFromCart(artworkId: string): Promise<any> {
+    return this.request<any>(`/cart/items/${artworkId}`, { method: 'DELETE' }, true);
+  }
+
+  async clearCart(): Promise<any> {
+    return this.request<any>(`/cart`, { method: 'DELETE' }, true);
+  }
+
+  // Order endpoints
+  async createOrder(orderData: any): Promise<any> {
+    return this.request<any>(
+      `/orders`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      },
+      true,
+    );
+  }
+
+  async getOrders(): Promise<any[]> {
+    return this.request<any[]>(`/orders`, { method: 'GET' }, true);
+  }
+
+  async getOrder(orderId: string): Promise<any> {
+    return this.request<any>(`/orders/${orderId}`, { method: 'GET' }, true);
+  }
+
+  async cancelOrder(orderId: string): Promise<any> {
+    return this.request<any>(`/orders/${orderId}/cancel`, { method: 'PUT' }, true);
+  }
+
+  async updatePaymentStatus(orderId: string, paymentStatus: string, transactionId?: string): Promise<any> {
+    return this.request<any>(
+      `/orders/${orderId}/payment-status`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentStatus, transactionId }),
+      },
+      true,
+    );
+  }
+
+  // Shipping Address endpoints
+  async getShippingAddresses(): Promise<any[]> {
+    return this.request<any[]>(`/orders/addresses`, { method: 'GET' }, true);
+  }
+
+  async createShippingAddress(addressData: any): Promise<any> {
+    return this.request<any>(
+      `/orders/addresses`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addressData),
+      },
+      true,
+    );
+  }
+
+  async updateShippingAddress(addressId: string, addressData: any): Promise<any> {
+    return this.request<any>(
+      `/orders/addresses/${addressId}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(addressData),
+      },
+      true,
+    );
+  }
+
+  async deleteShippingAddress(addressId: string): Promise<any> {
+    return this.request<any>(`/orders/addresses/${addressId}`, { method: 'DELETE' }, true);
+  }
+
+  // Admin endpoints
+  async getAllOrders(): Promise<any[]> {
+    return this.request<any[]>(`/orders/all`, { method: 'GET' }, true);
+  }
+
+  async updateOrderStatus(orderId: string, status: string): Promise<any> {
+    return this.request<any>(
+      `/orders/${orderId}/status`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      },
+      true,
+    );
+  }
+
+  async addTrackingNumber(orderId: string, trackingNumber: string): Promise<any> {
+    return this.request<any>(
+      `/orders/${orderId}/tracking`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trackingNumber }),
+      },
+      true,
+    );
+  }
+
+  async getSalesReport(startDate?: string, endDate?: string): Promise<any> {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return this.request<any>(`/orders/admin/reports${query}`, { method: 'GET' }, true);
+  }
+
+  async getAdminDashboard(): Promise<any> {
+    return this.request<any>(`/admin/dashboard`, { method: 'GET' }, true);
+  }
+
+  async getAllUsers(): Promise<any[]> {
+    return this.request<any[]>(`/admin/users`, { method: 'GET' }, true);
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<any> {
+    return this.request<any>(
+      `/admin/users/${userId}/role`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role }),
+      },
+      true,
+    );
+  }
+
+  async deleteUser(userId: string): Promise<any> {
+    return this.request<any>(`/admin/users/${userId}`, { method: 'DELETE' }, true);
+  }
+
+  async getAllAdminArtworks(): Promise<any[]> {
+    return this.request<any[]>(`/admin/artworks`, { method: 'GET' }, true);
+  }
+
+  async updateAdminArtwork(artworkId: string, updateData: any): Promise<any> {
+    return this.request<any>(
+      `/admin/artworks/${artworkId}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData),
+      },
+      true,
+    );
+  }
+
+  async deleteAdminArtwork(artworkId: string): Promise<any> {
+    return this.request<any>(`/admin/artworks/${artworkId}`, { method: 'DELETE' }, true);
+  }
 
   logout() {
     localStorage.removeItem('token');

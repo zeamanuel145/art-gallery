@@ -9,6 +9,8 @@ import ArtworkModal from '../../components/ArtworkModal';
 import PaymentModal from '../../components/PaymentModal';
 import SuccessMessage from '../../components/SuccessMessage';
 import ThemeToggle from "../../components/ThemeToggle";
+import { useCart } from '../../contexts/CartContext';
+import { useToast } from '../../contexts/ToastContext';
 import "../../styles/globals.css";
 
 export default function NewArrivals() {
@@ -19,6 +21,8 @@ export default function NewArrivals() {
   const [successArtwork, setSuccessArtwork] = useState<Artwork | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { addToCart, isInCart } = useCart();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,6 +64,20 @@ export default function NewArrivals() {
   const handleBuyClick = (artwork: Artwork) => {
     if (!user) return;
     setPaymentArtwork(artwork);
+  };
+
+  const handleAddToCart = (artwork: Artwork, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      showToast('Please log in to add items to cart', 'warning');
+      return;
+    }
+    if (!artwork.forSale || artwork.sold) {
+      showToast('This artwork is not available for purchase', 'error');
+      return;
+    }
+    addToCart(artwork);
+    showToast(`${artwork.title} added to cart`, 'success');
   };
 
   const handlePaymentSuccess = async () => {
@@ -234,15 +252,34 @@ export default function NewArrivals() {
                           <>
                             <span className="price">${artwork.price}</span>
                             {!isOwner(artwork) && user && (
-                              <button 
-                                className="buyBtn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleBuyClick(artwork);
-                                }}
-                              >
-                                Buy Here
-                              </button>
+                              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                <button 
+                                  className="buyBtn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBuyClick(artwork);
+                                  }}
+                                >
+                                  Buy Here
+                                </button>
+                                <button 
+                                  className="addToCartBtn"
+                                  onClick={(e) => handleAddToCart(artwork, e)}
+                                  style={{
+                                    background: isInCart(artwork._id) ? '#22c55e' : '#a65b2b',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    transition: 'background 0.2s'
+                                  }}
+                                >
+                                  {isInCart(artwork._id) ? '✓ In Cart' : 'Add to Cart'}
+                                </button>
+                              </div>
                             )}
                           </>
                         ) : (

@@ -81,7 +81,7 @@ export default function DashboardPage() {
 
       <PageTransition>
         <div className="page">
-          <DashboardSidebar activePage="dashboard" />
+          <DashboardSidebar activePage="dashboard" user={user} />
           <div className="contentArea">
           <header className="topnav" role="banner">
             <div className="brand"></div>

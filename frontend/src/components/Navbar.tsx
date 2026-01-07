@@ -8,15 +8,19 @@ import { usePathname } from 'next/navigation';
 import { api, User } from '../lib/api';
 import ThemeToggle from './ThemeToggle';
 import DefaultAvatar from './DefaultAvatar';
+import ShoppingCart from './ShoppingCart';
+import { useCart } from '../contexts/CartContext';
 import styles from './Navbar.module.css';
 
 const Navbar: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const pathname = usePathname();
   const isLandingPage = pathname === '/';
   const isDashboardPage = ['/dashboard', '/my-artworks', '/profile', '/purchases', '/sales', '/settings', '/upload-artwork'].includes(pathname);
+  const { getTotalItems } = useCart();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -87,6 +91,35 @@ const Navbar: React.FC = () => {
           <ThemeToggle />
           {user ? (
             <>
+              <button 
+                className={`text-lg relative transition-colors ${isDashboardPage ? (isDark ? 'text-white hover:text-gray-300' : 'text-amber-900 hover:text-amber-700') : 'text-white hover:text-gray-300'}`}
+                aria-label="Shopping Cart"
+                onClick={() => setIsCartOpen(true)}
+                style={{ position: 'relative', cursor: 'pointer' }}
+              >
+                🛒
+                {getTotalItems() > 0 && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-8px',
+                      right: '-8px',
+                      background: '#ef4444',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '20px',
+                      height: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {getTotalItems() > 9 ? '9+' : getTotalItems()}
+                  </span>
+                )}
+              </button>
               {!isLandingPage && !isDashboardPage && (
                 <>
                   <button className="text-white text-lg" aria-label="Notifications">🔔</button>
@@ -177,6 +210,17 @@ const Navbar: React.FC = () => {
               <div className="flex justify-center mb-3">
                 <ThemeToggle />
               </div>
+              {user && (
+                <button 
+                  className={`block w-full text-left py-2 ${isDashboardPage ? (isDark ? 'text-white hover:text-gray-300' : 'text-amber-900 hover:text-amber-700') : 'text-white hover:text-gray-300'}`}
+                  onClick={() => {
+                    setIsCartOpen(true);
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  🛒 Shopping Cart {getTotalItems() > 0 && `(${getTotalItems()})`}
+                </button>
+              )}
               {user ? (
                 !isLandingPage && (
                   <div className="flex items-center justify-center space-x-3">
@@ -204,6 +248,7 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       )}
+      <ShoppingCart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </nav>
   );
 };
