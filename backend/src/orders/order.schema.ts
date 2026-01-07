@@ -1,23 +1,38 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types, Schema as MongooseSchema } from 'mongoose';
 
-const OrderItemSchema = new MongooseSchema({
+// Define OrderItem schema
+export const OrderItemSchema = new MongooseSchema({
   artwork: { type: Types.ObjectId, ref: 'Artwork', required: true },
   quantity: { type: Number, required: true, min: 1 },
   price: { type: Number, required: true },
-  subtotal: { type: Number, required: true }
+  subtotal: { type: Number, required: true },
+  seller: { type: Types.ObjectId, ref: 'User', required: true }, // added seller
+  buyer: { type: Types.ObjectId, ref: 'User', required: true },  // added buyer
 }, { _id: false });
 
-const ShippingAddressSchema = new MongooseSchema({
+// Export TypeScript interface for OrderItem
+export interface OrderItem {
+  artwork: Types.ObjectId;
+  quantity: number;
+  price: number;
+  subtotal: number;
+  seller: Types.ObjectId;
+  buyer: Types.ObjectId;
+}
+
+// Shipping address schema
+export const ShippingAddressSchema = new MongooseSchema({
   fullName: { type: String, required: true },
   phone: { type: String, required: true },
   address: { type: String, required: true },
   city: { type: String, required: true },
   state: { type: String, required: true },
   zipCode: { type: String, required: true },
-  country: { type: String, default: 'Ethiopia' }
+  country: { type: String, default: 'Ethiopia' },
 }, { _id: false });
 
+// Order schema
 @Schema({ timestamps: true })
 export class Order extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
@@ -27,12 +42,7 @@ export class Order extends Document {
   orderNumber: string;
 
   @Prop({ type: [OrderItemSchema], required: true })
-  items: Array<{
-    artwork: Types.ObjectId;
-    quantity: number;
-    price: number;
-    subtotal: number;
-  }>;
+  items: OrderItem[];
 
   @Prop({ type: Number, required: true })
   subtotal: number;
@@ -57,22 +67,13 @@ export class Order extends Document {
     country: string;
   };
 
-  @Prop({ 
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'], 
-    default: 'pending' 
-  })
+  @Prop({ enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'], default: 'pending' })
   status: string;
 
-  @Prop({ 
-    enum: ['card', 'mobile_banking', 'cash_on_delivery'], 
-    required: true 
-  })
+  @Prop({ enum: ['card', 'mobile_banking', 'cash_on_delivery'], required: true })
   paymentMethod: string;
 
-  @Prop({ 
-    enum: ['pending', 'paid', 'failed', 'refunded'], 
-    default: 'pending' 
-  })
+  @Prop({ enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' })
   paymentStatus: string;
 
   @Prop({ type: String })
@@ -95,4 +96,3 @@ export class Order extends Document {
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
-

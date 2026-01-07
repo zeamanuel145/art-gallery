@@ -110,7 +110,7 @@ export default function ArtworkModal({ artwork, user, onClose, onUpdate }: Artwo
         </div>
 
         <div className="p-6">
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="flex flex-col md:flex-row gap-8">
             {/* Image */}
             <div className="relative">
               <img
@@ -131,10 +131,10 @@ export default function ArtworkModal({ artwork, user, onClose, onUpdate }: Artwo
             </div>
 
             {/* Details */}
-            <div className="space-y-6">
-              <div>
+            <div className="space-y-6 ">
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200" style={{backgroundColor: 'var(--modal-card-bg)', borderColor: 'var(--modal-border)'}}>
                 <h3 className="text-xl font-semibold text-amber-900 mb-2" style={{color: 'var(--modal-text)'}}>Artwork Details</h3>
-                <p className="text-amber-700 leading-relaxed" style={{color: 'var(--modal-text)'}}>{artwork.description}</p>
+                <p className="text-amber-700 leading-relaxed  text-justify w-full m-3" style={{color: 'var(--modal-text)'}}>{artwork.description}</p>
               </div>
 
               <div>
@@ -149,9 +149,9 @@ export default function ArtworkModal({ artwork, user, onClose, onUpdate }: Artwo
 
               {/* Pricing Info */}
               {artwork.forSale && !artwork.sold && (
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200" style={{color: 'var(--modal-text)'}}>
                   <h4 className="text-lg font-semibold text-green-800 mb-2">Available for Purchase</h4>
-                  <p className="text-2xl font-bold text-green-600 mb-3">${artwork.price}</p>
+                  <p className="text-2xl font-bold text-black mb-3">${artwork.price}</p>
                   {!isOwner && user && (
                     <div className="flex gap-3">
                       <button
@@ -303,7 +303,7 @@ export default function ArtworkModal({ artwork, user, onClose, onUpdate }: Artwo
           --modal-bg: white;
           --modal-text: #a65b2b;
           --modal-border: #e5e7eb;
-          --modal-card-bg: #f9fafb;
+          --modal-card-bg:rgb(155, 155, 173);
           --modal-input-bg: white;
         }
         
