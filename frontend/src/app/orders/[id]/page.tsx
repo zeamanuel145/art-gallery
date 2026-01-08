@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { api } from '../../../../lib/api';
-import Navbar from '../../../../components/Navbar';
-import { useToast } from '../../../../contexts/ToastContext';
+import { api } from '../../../lib/api';
+import Navbar from '../../../components/Navbar';
+import { useToast } from '../../../contexts/ToastContext';
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -156,7 +156,7 @@ export default function OrderDetailPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '14px', color: '#666' }}>Quantity: {item.quantity}</span>
                       <span style={{ fontWeight: '600', fontSize: '18px', color: '#a65b2b' }}>
-                        ${item.subtotal.toFixed(2)}
+                        ${(item.subtotal ?? 0).toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -187,19 +187,19 @@ export default function OrderDetailPage() {
               <div style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <span>Subtotal</span>
-                  <span>${order.subtotal.toFixed(2)}</span>
+                  <span>${(order.subtotal ?? 0).toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <span>Shipping</span>
-                  <span>${order.shippingCost.toFixed(2)}</span>
+                  <span>${(order.shippingCost ?? 0).toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <span>Tax</span>
-                  <span>${order.tax.toFixed(2)}</span>
+                  <span>${(order.tax ?? 0).toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '20px', paddingTop: '12px', borderTop: '2px solid #eee' }}>
                   <span>Total</span>
-                  <span style={{ color: '#a65b2b' }}>${order.total.toFixed(2)}</span>
+                  <span style={{ color: '#a65b2b' }}>${(order.total ?? 0).toFixed(2)}</span>
                 </div>
               </div>
 

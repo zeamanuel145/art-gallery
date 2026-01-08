@@ -6,6 +6,7 @@ import {
   Body,
   Delete,
   Patch,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { OrdersService } from './orders.service';
 import { ShippingAddressService } from './shipping-address.service';
 import { JwtAuthGuard } from '../common/jwt.guard';
 import { UnauthorizedException } from '@nestjs/common';
+import { UsersService } from '../users/users.service';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -20,6 +22,7 @@ export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
     private readonly addressService: ShippingAddressService,
+    private readonly usersService: UsersService,
   ) {}
 
   @Post()
@@ -34,6 +37,20 @@ export class OrdersController {
     const userId = req.user?._id || req.user?.id || req.user?.userId || req.user?.sub;
     if (!userId) return this.ordersService.getAllOrders();
     return this.ordersService.getOrdersByUser(String(userId));
+  }
+
+  @Get('all')
+  async getAllOrders(@Req() req: any) {
+    let role = req.user?.role;
+    if (!role) {
+      const id = req.user?.userId || req.user?.sub || req.user?._id || req.user?.id;
+      if (id) {
+        const dbUser = await this.usersService.findById(String(id));
+        role = dbUser?.role;
+      }
+    }
+    if (role !== 'admin') throw new UnauthorizedException('Admin access required');
+    return this.ordersService.getAllOrders();
   }
 
   @Post('addresses')
@@ -79,6 +96,24 @@ export class OrdersController {
 
   @Patch(':id/payment')
   async updatePayment(@Param('id') id: string, @Body() body: { paymentStatus: string; transactionId?: string }) {
+    return this.ordersService.updatePaymentStatus(id, body.paymentStatus, body.transactionId);
+  }
+
+  @Put(':id/payment-status')
+  async confirmPayment(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body() body: { paymentStatus: string; transactionId?: string },
+  ) {
+    let role = req.user?.role;
+    if (!role) {
+      const uid = req.user?.userId || req.user?.sub || req.user?._id || req.user?.id;
+      if (uid) {
+        const dbUser = await this.usersService.findById(String(uid));
+        role = dbUser?.role;
+      }
+    }
+    if (role !== 'admin') throw new UnauthorizedException('Admin access required');
     return this.ordersService.updatePaymentStatus(id, body.paymentStatus, body.transactionId);
   }
 
