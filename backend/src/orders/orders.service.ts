@@ -162,6 +162,28 @@ export class OrdersService {
     );
 
     await this.orderModel.findByIdAndUpdate(orderId, updateData, { new: true }).exec();
+
+    // If payment confirmed, mark related artworks as sold and transfer ownership
+    if (paymentStatus === 'paid') {
+      try {
+        // Ensure we have the latest order with populated items
+        const fullOrder: any = await this.orderModel.findById(orderId).populate('items.artwork').exec();
+        const buyerId = fullOrder?.user || (fullOrder?.items?.[0]?.buyer);
+        const items = fullOrder?.items || [];
+        await Promise.all(items.map(async (it: any) => {
+          const artworkId = it.artwork?._id ? it.artwork._id : it.artwork;
+          if (!artworkId) return;
+          await this.artworkModel.findByIdAndUpdate(artworkId, {
+            sold: true,
+            owner: buyerId ? new Types.ObjectId(String(buyerId)) : undefined,
+            forSale: false,
+          }).exec();
+        }));
+      } catch (e) {
+        console.error('Failed to mark artworks as sold after payment:', e);
+      }
+    }
+
     return this.getOrderById(orderId);
   }
 
