@@ -22,6 +22,7 @@ export class OrdersService {
 
   // Create a new order
   async createOrder(userId: string, orderData: any) {
+    console.log('OrdersService.createOrder called', { userId, orderData });
     const orderNumber = await this.generateOrderNumber();
     const items: Array<{
       artwork: Types.ObjectId;
@@ -34,33 +35,61 @@ export class OrdersService {
 
     // Validate artworks and prepare items
     for (const item of orderData.items) {
+      if (!item || !item.artwork) {
+        console.error('Invalid order item:', item);
+        throw new BadRequestException('Invalid order item');
+      }
       const artwork = await this.artworkModel.findById(item.artwork).populate('artist');
       if (!artwork) throw new NotFoundException(`Artwork ${item.artwork} not found`);
       if (!artwork.forSale || artwork.sold) throw new BadRequestException(`Artwork ${artwork.title} is not available for sale`);
 
+      // Resolve artwork id
+      const artworkId = artwork._id as Types.ObjectId;
+
+      // Resolve seller id (artist may be populated object or ObjectId)
+      let sellerId: Types.ObjectId;
+      const artist = (artwork as any).artist;
+      if (artist && (artist as any)._id) {
+        sellerId = (artist as any)._id as Types.ObjectId;
+      } else if (artist && Types.ObjectId.isValid(String(artist))) {
+        sellerId = new Types.ObjectId(String(artist));
+      } else {
+        throw new BadRequestException(`Invalid artist id for artwork ${artworkId}`);
+      }
+
+      // Validate buyer/user id
+      if (!Types.ObjectId.isValid(String(userId))) {
+        console.error('Invalid user id for order:', userId);
+        throw new BadRequestException(`Invalid user id: ${String(userId)}`);
+      }
+
       items.push({
-        artwork: artwork._id,
+        artwork: artworkId,
         quantity: item.quantity,
         price: artwork.price,
         subtotal: artwork.price * item.quantity,
-        seller: artwork.artist._id,
-        buyer: new Types.ObjectId(userId),
+        seller: sellerId,
+        buyer: new Types.ObjectId(String(userId)),
       });
     }
 
     // Create order
-    const order = new this.orderModel({
+    // Debug: inspect prepared items and order payload
+    console.log('Prepared order items:', JSON.stringify(items, null, 2));
+    const orderPayload = {
       ...orderData,
       items,
       user: new Types.ObjectId(userId),
       orderNumber,
-    });
+    };
+    console.log('Order payload to save:', JSON.stringify(orderPayload, null, 2));
 
+    const order = new this.orderModel(orderPayload);
     await order.save();
 
     // Create payment
     const payment = new this.paymentModel({
-      order: order._id,
+      order: order._id as Types.ObjectId,
       user: new Types.ObjectId(userId),
       amount: orderData.total,
       method: orderData.paymentMethod,
@@ -68,7 +97,7 @@ export class OrdersService {
     });
     await payment.save();
 
-    return this.getOrderById(order._id.toString());
+    return this.getOrderById((order._id as Types.ObjectId).toString());
   }
 
   // Get single order by ID
@@ -133,6 +162,28 @@ export class OrdersService {
     );
 
     await this.orderModel.findByIdAndUpdate(orderId, updateData, { new: true }).exec();
+
+    // If payment confirmed, mark related artworks as sold and transfer ownership
+    if (paymentStatus === 'paid') {
+      try {
+        // Ensure we have the latest order with populated items
+        const fullOrder: any = await this.orderModel.findById(orderId).populate('items.artwork').exec();
+        const buyerId = fullOrder?.user || (fullOrder?.items?.[0]?.buyer);
+        const items = fullOrder?.items || [];
+        await Promise.all(items.map(async (it: any) => {
+          const artworkId = it.artwork?._id ? it.artwork._id : it.artwork;
+          if (!artworkId) return;
+          await this.artworkModel.findByIdAndUpdate(artworkId, {
+            sold: true,
+            owner: buyerId ? new Types.ObjectId(String(buyerId)) : undefined,
+            forSale: false,
+          }).exec();
+        }));
+      } catch (e) {
+        console.error('Failed to mark artworks as sold after payment:', e);
+      }
+    }
+
     return this.getOrderById(orderId);
   }
 

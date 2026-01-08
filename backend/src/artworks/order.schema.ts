@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
-export class Order extends Document {
+export class ArtworkOrder extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Artwork', required: true })
   artwork: Types.ObjectId;
 
@@ -19,4 +19,4 @@ export class Order extends Document {
   status: string;
 }
 
-export const OrderSchema = SchemaFactory.createForClass(Order);
+export const ArtworkOrderSchema = SchemaFactory.createForClass(ArtworkOrder);

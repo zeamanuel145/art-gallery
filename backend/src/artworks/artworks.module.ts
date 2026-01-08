@@ -3,13 +3,13 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ArtworksController } from './artworks.controller';
 import { ArtworksService } from './artworks.service';
 import { Artwork, ArtworkSchema } from './artwork.schema';
-import { Order, OrderSchema } from './order.schema';
+import { ArtworkOrder, ArtworkOrderSchema } from './order.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Artwork.name, schema: ArtworkSchema },
-      { name: Order.name, schema: OrderSchema }
+      { name: ArtworkOrder.name, schema: ArtworkOrderSchema }
     ])
   ],
   controllers: [ArtworksController],

@@ -170,7 +170,7 @@ export default function AdminOrdersPage() {
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: '600', marginBottom: '4px' }}>{item.artwork?.title}</div>
                           <div style={{ fontSize: '14px', color: '#666' }}>
-                            Qty: {item.quantity} × ${item.price.toFixed(2)}
+                            Qty: {item.quantity} × ${(item.price ?? 0).toFixed(2)}
                           </div>
                         </div>
                       </div>
@@ -180,7 +180,7 @@ export default function AdminOrdersPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '20px', borderTop: '1px solid #eee' }}>
                     <div>
                       <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#a65b2b' }}>
-                        Total: ${order.total.toFixed(2)}
+                        Total: ${(order.total ?? 0).toFixed(2)}
                       </div>
                       <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
                         Payment: <span style={{ textTransform: 'capitalize', fontWeight: '600' }}>{order.paymentStatus}</span>
@@ -193,6 +193,31 @@ export default function AdminOrdersPage() {
                           currentTrackingNumber={order.trackingNumber}
                           onUpdate={handleTrackingUpdate}
                         />
+                      )}
+                      {order.paymentStatus !== 'paid' && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await api.updatePaymentStatus(order._id, 'paid');
+                              showToast('Payment confirmed', 'success');
+                              const ordersData = await api.getAllOrders();
+                              setOrders(ordersData);
+                            } catch (err: any) {
+                              showToast(err?.message || 'Failed to confirm payment', 'error');
+                            }
+                          }}
+                          style={{
+                            padding: '8px 16px',
+                            background: '#10b981',
+                            color: 'white',
+                            borderRadius: '6px',
+                            border: 'none',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Confirm Payment
+                        </button>
                       )}
                       <Link
                         href={`/orders/${order._id}`}
