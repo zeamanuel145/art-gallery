@@ -1,176 +1,130 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { Order } from './order.schema';
-import { Payment } from './payment.schema';
-import { Artwork } from '../artworks/artwork.schema';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  Delete,
+  Patch,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { OrdersService } from './orders.service';
+import { ShippingAddressService } from './shipping-address.service';
+import { JwtAuthGuard } from '../common/jwt.guard';
+import { UnauthorizedException } from '@nestjs/common';
+import { UsersService } from '../users/users.service';
 
-@Injectable()
-export class OrdersService {
+@Controller('orders')
+@UseGuards(JwtAuthGuard)
+export class OrdersController {
   constructor(
-    @InjectModel(Order.name) private orderModel: Model<Order>,
-    @InjectModel(Payment.name) private paymentModel: Model<Payment>,
-    @InjectModel(Artwork.name) private artworkModel: Model<Artwork>,
+    private readonly ordersService: OrdersService,
+    private readonly addressService: ShippingAddressService,
+    private readonly usersService: UsersService,
   ) {}
 
-  // Generate unique order number
-  async generateOrderNumber(): Promise<string> {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    return `ORD-${timestamp}-${random}`;
+  @Post()
+  async createOrder(@Req() req: any, @Body() body: any) {
+    const userId = req.user?._id || req.user?.id || req.user?.sub || req.user?.userId || body.userId;
+    if (!userId) throw new UnauthorizedException('Authentication required to create orders');
+    return this.ordersService.createOrder(String(userId), body);
   }
 
-  // Create a new order
-  async createOrder(userId: string, orderData: any) {
-    const orderNumber = await this.generateOrderNumber();
-    const items: Array<{
-      artwork: Types.ObjectId;
-      quantity: number;
-      price: number;
-      subtotal: number;
-      seller: Types.ObjectId;
-      buyer: Types.ObjectId;
-    }> = [];
+  @Get()
+  async getOrders(@Req() req: any) {
+    const userId = req.user?._id || req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) return this.ordersService.getAllOrders();
+    return this.ordersService.getOrdersByUser(String(userId));
+  }
 
-    // Validate artworks and prepare items
-    for (const item of orderData.items) {
-      const artwork = await this.artworkModel.findById(item.artwork).populate('artist');
-      if (!artwork) throw new NotFoundException(`Artwork ${item.artwork} not found`);
-      if (!artwork.forSale || artwork.sold) throw new BadRequestException(`Artwork ${artwork.title} is not available for sale`);
-
-      items.push({
-        artwork: new Types.ObjectId(artwork._id),
-        quantity: item.quantity,
-        price: artwork.price,
-        subtotal: artwork.price * item.quantity,
-        seller: new Types.ObjectId(artwork.artist._id),
-        buyer: new Types.ObjectId(userId),
-      });
+  @Get('all')
+  async getAllOrders(@Req() req: any) {
+    let role = req.user?.role;
+    if (!role) {
+      const id = req.user?.userId || req.user?.sub || req.user?._id || req.user?.id;
+      if (id) {
+        const dbUser = await this.usersService.findById(String(id));
+        role = dbUser?.role;
+      }
     }
-
-    // Create order
-    const order = new this.orderModel({
-      ...orderData,
-      items,
-      user: new Types.ObjectId(userId),
-      orderNumber,
-    });
-
-    await order.save();
-
-    // Create payment
-    const payment = new this.paymentModel({
-      order: order._id,
-      user: new Types.ObjectId(userId),
-      amount: orderData.total,
-      method: orderData.paymentMethod,
-      status: 'pending',
-    });
-    await payment.save();
-
-    return this.getOrderById(order._id.toString());
+    if (role !== 'admin') throw new UnauthorizedException('Admin access required');
+    return this.ordersService.getAllOrders();
   }
 
-  // Get single order by ID
-  async getOrderById(orderId: string, userId?: string) {
-    const query: any = { _id: orderId };
-    if (userId) query.user = new Types.ObjectId(userId);
-
-    const order = await this.orderModel
-      .findOne(query)
-      .populate({ path: 'items.artwork', populate: { path: 'artist', select: 'username email name' } })
-      .populate('user', 'name email username')
-      .exec();
-
-    if (!order) throw new NotFoundException('Order not found');
-    return order;
+  @Post('addresses')
+  async createAddress(@Req() req: any, @Body() body: any) {
+    const userId = req.user?._id || req.user?.id || body.userId;
+    return this.addressService.createAddress(String(userId), body);
   }
 
-  // Get all orders of a user
-  async getOrdersByUser(userId: string) {
-    return this.orderModel
-      .find({ user: new Types.ObjectId(userId) })
-      .populate({ path: 'items.artwork', populate: { path: 'artist', select: 'username email name' } })
-      .sort({ createdAt: -1 })
-      .exec();
+  @Get('addresses')
+  async getAddresses(@Req() req: any) {
+    const userId = req.user?._id || req.user?.id || req.user?.userId || req.user?.sub;
+    return this.addressService.getAddressesByUser(String(userId));
   }
 
-  // Get all orders (admin)
-  async getAllOrders() {
-    return this.orderModel
-      .find()
-      .populate({ path: 'items.artwork', populate: { path: 'artist', select: 'username email name' } })
-      .populate('user', 'name email username')
-      .sort({ createdAt: -1 })
-      .exec();
+  @Get('addresses/:id')
+  async getAddress(@Param('id') id: string, @Req() req: any) {
+    const userId = req.user?._id || req.user?.id || req.user?.userId || req.user?.sub;
+    return this.addressService.getAddressById(id, String(userId));
   }
 
-  // Update order status
-  async updateOrderStatus(orderId: string, status: string) {
-    const order = await this.orderModel.findById(orderId);
-    if (!order) throw new NotFoundException('Order not found');
-
-    const updateData: any = { status };
-    if (status === 'shipped' && !order.shippedAt) updateData.shippedAt = new Date();
-    if (status === 'delivered' && !order.deliveredAt) updateData.deliveredAt = new Date();
-
-    await this.orderModel.findByIdAndUpdate(orderId, updateData, { new: true }).exec();
-    return this.getOrderById(orderId);
+  @Patch('addresses/:id')
+  async updateAddress(@Param('id') id: string, @Req() req: any, @Body() body: any) {
+    const userId = req.user?._id || req.user?.id || req.user?.userId || req.user?.sub;
+    return this.addressService.updateAddress(id, String(userId), body);
   }
 
-  // Update payment status
-  async updatePaymentStatus(orderId: string, paymentStatus: string, transactionId?: string) {
-    const order = await this.orderModel.findById(orderId);
-    if (!order) throw new NotFoundException('Order not found');
-
-    const updateData: any = { paymentStatus };
-    if (paymentStatus === 'paid') updateData.paidAt = new Date();
-    if (transactionId) updateData.paymentTransactionId = transactionId;
-
-    await this.paymentModel.findOneAndUpdate(
-      { order: orderId },
-      { status: paymentStatus, transactionId, paidAt: paymentStatus === 'paid' ? new Date() : undefined }
-    );
-
-    await this.orderModel.findByIdAndUpdate(orderId, updateData, { new: true }).exec();
-    return this.getOrderById(orderId);
+  @Delete('addresses/:id')
+  async deleteAddress(@Param('id') id: string, @Req() req: any) {
+    const userId = req.user?._id || req.user?.id;
+    return this.addressService.deleteAddress(id, String(userId));
   }
 
-  // Add tracking number
-  async addTrackingNumber(orderId: string, trackingNumber: string) {
-    await this.orderModel.findByIdAndUpdate(orderId, {
-      trackingNumber,
-      status: 'shipped',
-      shippedAt: new Date(),
-    }).exec();
-    return this.getOrderById(orderId);
+  @Get(':id')
+  async getOrder(@Param('id') id: string, @Req() req: any) {
+    const userId = req.user?._id || req.user?.id;
+    return this.ordersService.getOrderById(id, userId ? String(userId) : undefined);
   }
 
-  // Cancel order
-  async cancelOrder(orderId: string, userId: string) {
-    const order = await this.orderModel.findOne({ _id: orderId, user: new Types.ObjectId(userId) });
-    if (!order) throw new NotFoundException('Order not found');
-    if (order.status === 'shipped' || order.status === 'delivered') throw new BadRequestException('Cannot cancel shipped or delivered orders');
-
-    await this.orderModel.findByIdAndUpdate(orderId, { status: 'cancelled' }).exec();
-    return this.getOrderById(orderId);
+  @Patch(':id/status')
+  async updateStatus(@Param('id') id: string, @Body('status') status: string) {
+    return this.ordersService.updateOrderStatus(id, status);
   }
 
-  // Sales report
-  async getSalesReport(startDate?: Date, endDate?: Date) {
-    const match: any = {};
-    if (startDate || endDate) {
-      match.createdAt = {};
-      if (startDate) match.createdAt.$gte = startDate;
-      if (endDate) match.createdAt.$lte = endDate;
+  @Patch(':id/payment')
+  async updatePayment(@Param('id') id: string, @Body() body: { paymentStatus: string; transactionId?: string }) {
+    return this.ordersService.updatePaymentStatus(id, body.paymentStatus, body.transactionId);
+  }
+
+  @Put(':id/payment-status')
+  async confirmPayment(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body() body: { paymentStatus: string; transactionId?: string },
+  ) {
+    let role = req.user?.role;
+    if (!role) {
+      const uid = req.user?.userId || req.user?.sub || req.user?._id || req.user?.id;
+      if (uid) {
+        const dbUser = await this.usersService.findById(String(uid));
+        role = dbUser?.role;
+      }
     }
+    if (role !== 'admin') throw new UnauthorizedException('Admin access required');
+    return this.ordersService.updatePaymentStatus(id, body.paymentStatus, body.transactionId);
+  }
 
-    const orders = await this.orderModel.find(match).exec();
-    const totalOrders = orders.length;
-    const totalRevenue = orders.filter(o => o.paymentStatus === 'paid').reduce((sum, o) => sum + o.total, 0);
-    const pendingOrders = orders.filter(o => o.status === 'pending').length;
-    const completedOrders = orders.filter(o => o.status === 'delivered').length;
+  @Patch(':id/track')
+  async addTracking(@Param('id') id: string, @Body('trackingNumber') trackingNumber: string) {
+    return this.ordersService.addTrackingNumber(id, trackingNumber);
+  }
 
-    return { totalOrders, totalRevenue, pendingOrders, completedOrders, orders };
+  @Delete(':id')
+  async cancelOrder(@Param('id') id: string, @Req() req: any) {
+    const userId = req.user?._id || req.user?.id;
+    return this.ordersService.cancelOrder(id, String(userId));
   }
 }
